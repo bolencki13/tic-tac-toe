@@ -1,6 +1,6 @@
 /**
  * AI Opponent utilities for Tic Tac Toe
- * Optimized with memoization and advanced strategies
+ * Optimized with memoization, advanced strategies, and adaptive learning
  */
 import { findBestLimitedMove } from './limitedModeAI';
 import { hasWinningMove, hasForkMove } from './boardEvaluator';
@@ -27,7 +27,8 @@ export function findBestMove(
   aiPlayer: string,
   gameStyle: GameStyle = 'classic',
   xMoves: number[] = [],
-  oMoves: number[] = []
+  oMoves: number[] = [],
+  difficulty: string = 'medium'
 ): MoveResult {
   // For limited mode, use specialized algorithm
   if (gameStyle === 'limited') {
@@ -70,19 +71,32 @@ export function findBestMove(
     return blockingMove;
   }
 
-  // 3. Check for fork opportunity
+  // 3. For medium and hard mode, use adaptive learning to predict player moves
+  const adaptiveMove = getAdaptiveCounterMove(board, humanPlayer);
+  if (adaptiveMove !== null) {
+    // Different adaptation rates based on difficulty
+    if (difficulty === 'hard' && Math.random() < 0.9) {
+      // 90% chance to use adaptive moves in hard mode
+      return adaptiveMove;
+    } else if (difficulty === 'medium' && Math.random() < 0.5) {
+      // 50% chance to use adaptive moves in medium mode
+      return adaptiveMove;
+    }
+  }
+
+  // 4. Check for fork opportunity
   const forkMove = hasForkMove(board, aiPlayer);
   if (forkMove !== null) {
     return forkMove;
   }
 
-  // 4. Check if need to block opponent's fork
+  // 5. Check if need to block opponent's fork
   const blockForkMove = hasForkMove(board, humanPlayer);
   if (blockForkMove !== null) {
     return blockForkMove;
   }
 
-  // 5. Take center if empty
+  // 6. Take center if empty
   if (board[4] === null) {
     return 4;
   }

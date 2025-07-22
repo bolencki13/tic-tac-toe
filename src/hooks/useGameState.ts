@@ -1,5 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { findBestMove, findRandomMove } from '../utils/aiOpponent';
+import { 
+  findBestMoveAdvanced, 
+  recordPlayerMoveAdvanced, 
+  recordGameResultAdvanced,
+  initializeAdvancedAI
+} from '../utils/advancedAI';
 import type { TicTacToe } from '../components/TicTacToe/types';
 
 export function useGameState(props: {
@@ -58,6 +64,12 @@ export function useGameState(props: {
    * @param initialMove Optional index to place a move right after resetting
    */
   const resetGame = useCallback((initialMove?: number) => {
+    // Record game outcome if we're resetting mid-game
+    if (mode === 'single' && board.some(cell => cell !== null) && !winner) {
+      // Treat abandoning a game as a loss for learning purposes
+      recordGameResultAdvanced('X', aiPlayer);
+    }
+    
     // Reset all state variables
     const newBoard = Array(9).fill(null);
     setBoard(newBoard);
@@ -87,7 +99,7 @@ export function useGameState(props: {
         setIsXNext(false);
       }, 10);
     }
-  }, [style]);
+  }, [style, mode, board, winner, aiPlayer]);
 
 
   /**
@@ -120,11 +132,12 @@ export function useGameState(props: {
           // 50% chance to make a random move, 50% chance to make the best move
           moveIndex = Math.random() > 0.5
             ? findRandomMove(newBoard, aiPlayer, style, xMoves, oMoves)
-            : findBestMove(newBoard, aiPlayer, style, xMoves, oMoves);
+            : findBestMove(newBoard, aiPlayer, style, xMoves, oMoves, difficulty);
           break;
         case 'hard':
         default:
-          moveIndex = findBestMove(newBoard, aiPlayer, style, xMoves, oMoves);
+          // Use the advanced AI system with all learning algorithms integrated
+          moveIndex = findBestMoveAdvanced(newBoard, aiPlayer, style, xMoves, oMoves, difficulty);
           break;
       }
 
@@ -168,6 +181,13 @@ export function useGameState(props: {
   /**
    * Effect to trigger AI move when it's AI's turn in single player mode
    */
+  // Initialize advanced AI when the hook is first used
+  useEffect(() => {
+    if (mode === 'single') {
+      initializeAdvancedAI();
+    }
+  }, [mode]);
+  
   useEffect(() => {
     if (mode === 'single' && !isXNext && !winner) {
       makeAIMove();
@@ -239,18 +259,33 @@ export function useGameState(props: {
     // Update the board with the new move
     newBoard[index] = currentPlayer;
     setBoard(newBoard);
+    
+    // Record the move for AI learning (only in single player mode when human player makes a move)
+    if (mode === 'single' && currentPlayer === 'X') {
+      // Use the advanced AI learning system
+      recordPlayerMoveAdvanced([...newBoard], index);
+    }
 
     // Check for winner
     const result = calculateWinner(newBoard);
     if (result.winner) {
       setWinner(result.winner);
       setWinningLine(result.line);
+      
+      // Record game result for AI learning when game ends
+      if (mode === 'single') {
+        recordGameResultAdvanced(result.winner, aiPlayer);
+      }
+      
       onGameEnd?.(result.winner);
     } else {
       // In classic mode, check for draw when board is full
       // In limited mode, we never reach a draw by filling the board
       if (style === 'classic' && newBoard.every(square => square !== null)) {
-        // Draw case
+        // Draw case - also record this result for AI learning
+        if (mode === 'single') {
+          recordGameResultAdvanced(null, aiPlayer);
+        }
         onGameEnd?.(null);
       } else {
         setIsXNext(!isXNext);
