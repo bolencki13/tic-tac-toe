@@ -5,9 +5,11 @@ import './styles.css';
 export namespace TicTacToe {
   export type GameMode = 'single' | 'multi';
   export type Difficulty = 'easy' | 'medium' | 'hard';
+  export type GameStyle = 'classic' | 'limited';
 
   export type Props = {
     mode: GameMode;
+    style: GameStyle;
     difficulty?: Difficulty;
     onGameEnd?: (winner: string | null) => void;
   }
@@ -21,9 +23,16 @@ export function TicTacToe(props: TicTacToe.Props) {
   const [isXNext, setIsXNext] = useState<boolean>(true);
   const [winner, setWinner] = useState<string | null>(null);
   const [isAIThinking, setIsAIThinking] = useState<boolean>(false);
+  // Track move history for limited mode (3 moves per player)
+  const [xMoves, setXMoves] = useState<number[]>([]);
+  const [oMoves, setOMoves] = useState<number[]>([]);
+  const [highlightCell, setHighlightCell] = useState<number | null>(null);
 
   // AI player is always 'O', human is always 'X' in single player mode
   const aiPlayer = 'O';
+
+  // Constants
+  const MAX_MOVES_PER_PLAYER = 3;
 
   /**
    * Side effects
@@ -34,6 +43,22 @@ export function TicTacToe(props: TicTacToe.Props) {
       makeAIMove();
     }
   }, [isXNext, winner, props.mode]);
+
+  // Effect to highlight the next piece to be removed in limited mode
+  useEffect(() => {
+    if (props.style === 'limited') {
+      // Highlight the oldest piece for the next player
+      if (isXNext && xMoves.length === MAX_MOVES_PER_PLAYER) {
+        setHighlightCell(xMoves[0]);
+      } else if (!isXNext && oMoves.length === MAX_MOVES_PER_PLAYER) {
+        setHighlightCell(oMoves[0]);
+      } else {
+        setHighlightCell(null);
+      }
+    } else {
+      setHighlightCell(null);
+    }
+  }, [isXNext, xMoves, oMoves, props.style]);
 
   /**
    * Helpers
@@ -62,7 +87,12 @@ export function TicTacToe(props: TicTacToe.Props) {
   // AI move handler
   const makeAIMove = () => {
     // If game is over or not AI's turn, do nothing
-    if (winner || isXNext || board.every(square => square !== null)) {
+    if (winner || isXNext) {
+      return;
+    }
+
+    // In classic mode, also return if board is full
+    if (props.style === 'classic' && board.every(square => square !== null)) {
       return;
     }
 
@@ -91,14 +121,32 @@ export function TicTacToe(props: TicTacToe.Props) {
       }
 
       if (moveIndex >= 0) {
+        // Limited mode special handling for AI
+        if (props.style === 'limited') {
+          // If AI already has MAX_MOVES_PER_PLAYER moves, remove the oldest one
+          if (oMoves.length >= MAX_MOVES_PER_PLAYER) {
+            const oldestMoveIndex = oMoves[0];
+            newBoard[oldestMoveIndex] = null;
+
+            // Update O moves array (remove oldest and add new)
+            setOMoves(prevMoves => [...prevMoves.slice(1), moveIndex]);
+          } else {
+            // Just add the new move
+            setOMoves(prevMoves => [...prevMoves, moveIndex]);
+          }
+        }
+
+        // Update the board with AI's move
         newBoard[moveIndex] = aiPlayer;
         setBoard(newBoard);
 
+        // Check for winner
         const newWinner = calculateWinner(newBoard);
         if (newWinner) {
           setWinner(newWinner);
           props.onGameEnd?.(newWinner);
-        } else if (newBoard.every(square => square !== null)) {
+        } else if (props.style === 'classic' && newBoard.every(square => square !== null)) {
+          // Draw case in classic mode only
           props.onGameEnd?.(null);
         }
       }
@@ -115,19 +163,51 @@ export function TicTacToe(props: TicTacToe.Props) {
       return;
     }
 
+    const currentPlayer = isXNext ? 'X' : 'O';
+    const currentMoves = isXNext ? xMoves : oMoves;
     const newBoard = [...board];
-    newBoard[index] = isXNext ? 'X' : 'O';
+
+    // Limited mode special handling
+    if (props.style === 'limited') {
+      // If player already has MAX_MOVES_PER_PLAYER moves, remove the oldest one
+      if (currentMoves.length >= MAX_MOVES_PER_PLAYER) {
+        const oldestMoveIndex = currentMoves[0];
+        newBoard[oldestMoveIndex] = null;
+
+        // Update the moves array (remove oldest and add new)
+        if (isXNext) {
+          setXMoves(prevMoves => [...prevMoves.slice(1), index]);
+        } else {
+          setOMoves(prevMoves => [...prevMoves.slice(1), index]);
+        }
+      } else {
+        // Just add the new move
+        if (isXNext) {
+          setXMoves(prevMoves => [...prevMoves, index]);
+        } else {
+          setOMoves(prevMoves => [...prevMoves, index]);
+        }
+      }
+    }
+
+    // Update the board with the new move
+    newBoard[index] = currentPlayer;
     setBoard(newBoard);
 
+    // Check for winner
     const newWinner = calculateWinner(newBoard);
     if (newWinner) {
       setWinner(newWinner);
       props.onGameEnd?.(newWinner);
-    } else if (newBoard.every(square => square !== null)) {
-      // Draw case
-      props.onGameEnd?.(null);
     } else {
-      setIsXNext(!isXNext);
+      // In classic mode, check for draw when board is full
+      // In limited mode, we never reach a draw by filling the board
+      if (props.style === 'classic' && newBoard.every(square => square !== null)) {
+        // Draw case
+        props.onGameEnd?.(null);
+      } else {
+        setIsXNext(!isXNext);
+      }
     }
   };
 
@@ -136,28 +216,55 @@ export function TicTacToe(props: TicTacToe.Props) {
     setIsXNext(true);
     setWinner(null);
     setIsAIThinking(false);
+    setXMoves([]);
+    setOMoves([]);
+    setHighlightCell(null);
   };
 
-  const renderSquare = (index: number) => (
-    <button
-      className="square"
-      onClick={() => handleClick(index)}
-      aria-label={`Square ${index}`}
-    >
-      {board[index]}
-    </button>
-  );
+  const renderSquare = (index: number) => {
+    const isHighlighted = highlightCell === index;
+    const squareClassName = `square ${isHighlighted ? 'highlighted' : ''}`;
+
+    return (
+      <button
+        className={squareClassName}
+        onClick={() => handleClick(index)}
+        aria-label={`Square ${index}`}
+      >
+        {board[index]}
+        {isHighlighted && <span className="removal-indicator">↻</span>}
+      </button>
+    );
+  };
 
   /**
    * Status message
    */
-  const status = winner
-    ? `Winner: ${winner}`
-    : board.every(square => square !== null)
-      ? 'Game ended in a draw'
-      : isAIThinking
-        ? 'AI is thinking...'
-        : `Next player: ${isXNext ? 'X' : 'O'}`;
+  const getMoveCount = (player: string) => {
+    return player === 'X' ? xMoves.length : oMoves.length;
+  };
+
+  let status;
+  if (winner) {
+    status = `Winner: ${winner}`;
+  } else if (props.style === 'classic' && board.every(square => square !== null)) {
+    status = 'Game ended in a draw';
+  } else if (isAIThinking) {
+    status = 'AI is thinking...';
+  } else {
+    const currentPlayer = isXNext ? 'X' : 'O';
+    status = `Next player: ${currentPlayer}`;
+
+    // Add move count for limited mode
+    if (props.style === 'limited') {
+      const moveCount = getMoveCount(currentPlayer);
+      status += ` (${moveCount}/${MAX_MOVES_PER_PLAYER} moves)`;
+
+      if (moveCount === MAX_MOVES_PER_PLAYER) {
+        status += ' - Next move will replace oldest piece';
+      }
+    }
+  }
 
   /**
    * Render

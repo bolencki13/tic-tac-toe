@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { TicTacToe } from './components/TicTacToe';
 import { GameModeSelector } from './components/GameModeSelector';
+import { GameStyleSelector } from './components/GameStyleSelector';
 import { ScoreBoard } from './components/ScoreBoard';
 
 function App() {
@@ -9,6 +10,7 @@ function App() {
    * State vars
    */
   const [gameMode, setGameMode] = useState<TicTacToe.GameMode | null>(null);
+  const [gameStyle, setGameStyle] = useState<TicTacToe.GameStyle | null>(null);
   const [difficulty, setDifficulty] = useState<TicTacToe.Difficulty>('medium');
   const [scores, setScores] = useState({
     player1: 0, // X player (human in single mode)
@@ -16,21 +18,24 @@ function App() {
     ties: 0
   });
   const [previousMode, setPreviousMode] = useState<TicTacToe.GameMode | null>(null);
+  const [previousStyle, setPreviousStyle] = useState<TicTacToe.GameStyle | null>(null);
   
   /**
    * Side effects
    */
-  // Reset scores when game mode changes
+  // Reset scores when game mode or style changes
   useEffect(() => {
-    if (gameMode !== null && gameMode !== previousMode) {
+    if ((gameMode !== null && gameMode !== previousMode) || 
+        (gameStyle !== null && gameStyle !== previousStyle)) {
       setScores({
         player1: 0,
         player2: 0,
         ties: 0
       });
       setPreviousMode(gameMode);
+      setPreviousStyle(gameStyle);
     }
-  }, [gameMode, previousMode]);
+  }, [gameMode, previousMode, gameStyle, previousStyle]);
   
   /**
    * Helpers
@@ -38,14 +43,16 @@ function App() {
   // Reset game state and go back to mode selection
   const handleReset = () => {
     setGameMode(null);
+    setGameStyle(null);
     // Reset scores when going back to mode selection
     setScores({
       player1: 0,
       player2: 0,
       ties: 0
     });
-    // Also reset previousMode to ensure scores will be reset even if the same mode is selected again
+    // Also reset previous states to ensure scores will be reset even if the same options are selected again
     setPreviousMode(null);
+    setPreviousStyle(null);
   };
   
   // Handle game end and update scores
@@ -109,6 +116,16 @@ function App() {
       
       {!gameMode ? (
         <GameModeSelector onSelectMode={setGameMode} />
+      ) : !gameStyle ? (
+        <>
+          <GameStyleSelector onSelectStyle={setGameStyle} />
+          <button 
+            className="back-button mt-4"
+            onClick={handleReset}
+          >
+            Back to Mode Selection
+          </button>
+        </>
       ) : (
         <>
           {renderDifficultySelector()}
@@ -118,11 +135,18 @@ function App() {
           
           <TicTacToe 
             mode={gameMode} 
+            style={gameStyle}
             difficulty={difficulty}
             onGameEnd={handleGameEnd} 
           />
           <button 
             className="back-button mt-4"
+            onClick={() => setGameStyle(null)}
+          >
+            Change Game Style
+          </button>
+          <button 
+            className="back-button mt-2"
             onClick={handleReset}
           >
             Back to Mode Selection
