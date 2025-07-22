@@ -1,14 +1,30 @@
 /**
  * AI Opponent utilities for Tic Tac Toe
+ * Optimized with memoization for better performance
  */
 
 export type Board = Array<string | null>;
 export type MoveResult = number;
 
+// Cache for minimax results to avoid recalculating the same positions
+const minimaxCache = new Map<string, number>();
+
 /**
- * Finds the best move for the AI using the minimax algorithm
+ * Create a hash key from board state for caching
+ */
+function getBoardHash(board: Board, isMaximizing: boolean, depth: number): string {
+  return `${board.join('')}|${isMaximizing}|${depth}`;
+}
+
+/**
+ * Finds the best move for the AI using the minimax algorithm with memoization
  */
 export function findBestMove(board: Board, aiPlayer: string): MoveResult {
+  // Reset cache for new board evaluation to prevent memory leaks
+  if (minimaxCache.size > 1000) {
+    minimaxCache.clear();
+  }
+  
   // Check for empty spaces
   const emptyIndices = board
     .map((square, index) => (square === null ? index : null))
@@ -36,7 +52,7 @@ export function findBestMove(board: Board, aiPlayer: string): MoveResult {
     // Make the move
     board[index] = aiPlayer;
 
-    // Calculate score for this move
+    // Calculate score for this move with memoization
     const score = minimax(board, 0, false, aiPlayer, humanPlayer);
 
     // Undo the move
@@ -53,25 +69,36 @@ export function findBestMove(board: Board, aiPlayer: string): MoveResult {
 }
 
 /**
- * Minimax algorithm for determining the best move
+ * Minimax algorithm for determining the best move with alpha-beta pruning
  */
 function minimax(
   board: Board,
   depth: number,
   isMaximizing: boolean,
   aiPlayer: string,
-  humanPlayer: string
+  humanPlayer: string,
+  alpha: number = -Infinity,
+  beta: number = Infinity
 ): number {
+  // Create a cache key for this board state
+  const cacheKey = getBoardHash(board, isMaximizing, depth);
+  
+  // Check if we've already calculated this position
+  if (minimaxCache.has(cacheKey)) {
+    return minimaxCache.get(cacheKey)!;
+  }
+  
   // Check if game is over
   const winner = checkWinner(board);
   if (winner !== null) {
-    if (winner === aiPlayer) return 10 - depth;
-    if (winner === humanPlayer) return depth - 10;
-    return 0; // Draw
+    const score = winner === aiPlayer ? 10 - depth : depth - 10;
+    minimaxCache.set(cacheKey, score);
+    return score;
   }
 
   // Check if board is full (draw)
   if (!board.includes(null)) {
+    minimaxCache.set(cacheKey, 0);
     return 0;
   }
 
@@ -81,11 +108,14 @@ function minimax(
     for (let i = 0; i < board.length; i++) {
       if (board[i] === null) {
         board[i] = aiPlayer;
-        const score = minimax(board, depth + 1, false, aiPlayer, humanPlayer);
+        const score = minimax(board, depth + 1, false, aiPlayer, humanPlayer, alpha, beta);
         board[i] = null;
         bestScore = Math.max(score, bestScore);
+        alpha = Math.max(alpha, bestScore);
+        if (beta <= alpha) break; // Alpha-beta pruning
       }
     }
+    minimaxCache.set(cacheKey, bestScore);
     return bestScore;
   } 
   // Minimizing player (Human)
@@ -94,11 +124,14 @@ function minimax(
     for (let i = 0; i < board.length; i++) {
       if (board[i] === null) {
         board[i] = humanPlayer;
-        const score = minimax(board, depth + 1, true, aiPlayer, humanPlayer);
+        const score = minimax(board, depth + 1, true, aiPlayer, humanPlayer, alpha, beta);
         board[i] = null;
         bestScore = Math.min(score, bestScore);
+        beta = Math.min(beta, bestScore);
+        if (beta <= alpha) break; // Alpha-beta pruning
       }
     }
+    minimaxCache.set(cacheKey, bestScore);
     return bestScore;
   }
 }

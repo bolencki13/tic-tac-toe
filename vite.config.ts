@@ -5,4 +5,17 @@ import tailwindcss from '@tailwindcss/vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom'],
+          game: ['./src/components/TicTacToe'],
+          utils: ['./src/utils/aiOpponent'],
+          ui: ['./src/components/GameModeSelector', './src/components/GameStyleSelector', './src/components/ScoreBoard']
+        }
+      }
+    },
+    sourcemap: true,
+  }
 })
