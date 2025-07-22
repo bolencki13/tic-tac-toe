@@ -8,7 +8,7 @@
   background-color: #f9f9f9;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 500px;
+  max-width: 600px;
 }
 
 .game-mode-selector h2 {
@@ -16,6 +16,27 @@
   color: #333;
   font-size: var(--font-size-2xl, 1.8rem);
   text-align: center;
+}
+
+.game-description {
+  text-align: left;
+  font-size: var(--font-size-md, 1rem);
+  line-height: 1.5;
+  color: #444;
+  width: 100%;
+}
+
+.game-description p {
+  margin-bottom: var(--spacing-sm, 12px);
+}
+
+.game-description ul {
+  margin: var(--spacing-xs, 8px) 0;
+  padding-left: var(--spacing-md, 16px);
+}
+
+.game-description li {
+  margin-bottom: var(--spacing-xs, 6px);
 }
 
 .mode-buttons {
