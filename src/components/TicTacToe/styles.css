@@ -268,12 +268,12 @@
 
 /* Different timing for X and O animations */
 .x-symbol-1 {
-  animation-duration: 0.4s;
+  animation-duration: 0.5s;
 }
 
 .x-symbol-2 {
-  animation-duration: 0.4s;
-  animation-delay: 0.4s; /* Start after first stroke completes */
+  animation-duration: 0.5s;
+  animation-delay: 0.25s; /* Start when first stroke is halfway complete */
   animation-fill-mode: both; /* Hide before animation starts */
 }
 
