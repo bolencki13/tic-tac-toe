@@ -53,6 +53,8 @@
   cursor: pointer;
   background-color: white;
   transition: background-color 0.2s;
+  position: relative;
+  overflow: hidden;
 }
 
 .square:hover {
@@ -238,6 +240,45 @@
   0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
   70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
   100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+}
+
+/* SVG symbol styles */
+.symbol-svg {
+  width: 70%;
+  height: 70%;
+}
+
+.symbol-path {
+  stroke-dasharray: 200;
+  stroke-dashoffset: 200;
+  animation: draw-symbol 1s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+/* Specific settings for O to make the circle animation work correctly */
+.o-symbol {
+  stroke-dasharray: 170;
+  stroke-dashoffset: 170;
+}
+
+@keyframes draw-symbol {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Different timing for X and O animations */
+.x-symbol-1 {
+  animation-duration: 0.4s;
+}
+
+.x-symbol-2 {
+  animation-duration: 0.4s;
+  animation-delay: 0.4s; /* Start after first stroke completes */
+  animation-fill-mode: both; /* Hide before animation starts */
+}
+
+.o-symbol {
+  animation-duration: 0.9s;
 }
 
 .removal-indicator {
