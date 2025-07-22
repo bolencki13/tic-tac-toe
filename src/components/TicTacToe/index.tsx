@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { findBestMove, findRandomMove } from '../../utils/aiOpponent';
+import { Confetti } from '../Confetti';
 import './styles.css';
 
 export namespace TicTacToe {
@@ -387,6 +388,9 @@ export function TicTacToe(props: TicTacToe.Props) {
    */
   return (
     <div className="tic-tac-toe">
+      {/* Show confetti when there's a winner */}
+      <Confetti active={!!winner} />
+      
       <div className="status">{status}</div>
       <div className="board-container">
         {renderWinningLine()}
