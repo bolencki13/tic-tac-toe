@@ -1,0 +1,2 @@
+ 🎮 Just released: Advanced Tic Tac Toe with AI powered by Monte Carlo Tree Search, Bayesian modeling & Multi-armed bandit algorithms! It actually learns
+  your play style over time. Play now: https://bolencki13.github.io/tic-tac-toe/ #MachineLearning #GameAI
