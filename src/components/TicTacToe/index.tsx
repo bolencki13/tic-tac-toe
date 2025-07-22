@@ -240,10 +240,6 @@ export function TicTacToe(props: TicTacToe.Props) {
   /**
    * Status message
    */
-  const getMoveCount = (player: string) => {
-    return player === 'X' ? xMoves.length : oMoves.length;
-  };
-
   let status;
   if (winner) {
     status = `Winner: ${winner}`;
@@ -254,16 +250,6 @@ export function TicTacToe(props: TicTacToe.Props) {
   } else {
     const currentPlayer = isXNext ? 'X' : 'O';
     status = `Next player: ${currentPlayer}`;
-
-    // Add move count for limited mode
-    if (props.style === 'limited') {
-      const moveCount = getMoveCount(currentPlayer);
-      status += ` (${moveCount}/${MAX_MOVES_PER_PLAYER} moves)`;
-
-      if (moveCount === MAX_MOVES_PER_PLAYER) {
-        status += ' - Next move will replace oldest piece';
-      }
-    }
   }
 
   /**
