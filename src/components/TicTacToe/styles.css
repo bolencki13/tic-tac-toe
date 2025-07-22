@@ -12,10 +12,29 @@
   margin-bottom: 10px;
 }
 
+.board-container {
+  position: relative;
+  margin-bottom: 20px;
+  /* Ensure container fits the board exactly (3 squares of 80px + 2px border) */
+  padding: 0;
+  width: 244px; /* 3 * 80px + 4px border */
+  height: 244px; /* 3 * 80px + 4px border */
+  /* Center the board within the container */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* For positioning reference */
+  box-sizing: content-box;
+  /* For absolute positioning of winning lines */
+  overflow: visible;
+}
+
 .board {
   display: flex;
   flex-direction: column;
   border: 2px solid #333;
+  position: relative;
+  z-index: 1;
 }
 
 .board-row {
@@ -44,6 +63,181 @@
   position: relative;
   border: 2px dashed #ff9800;
   background-color: #fff3e0;
+}
+
+.square.winning {
+  position: relative;
+  animation: pulse-win 1.5s ease-in-out infinite;
+  border-color: #4CAF50;
+  z-index: 1;
+}
+
+.square.winning::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(76, 175, 80, 0.3));
+  z-index: -1;
+}
+
+/* Winning line animations */
+.winning-line {
+  position: absolute;
+  background-color: #4CAF50;
+  height: 6px;
+  border-radius: 3px;
+  z-index: 2;
+  transform-origin: left center;
+  box-shadow: 0 0 5px rgba(76, 175, 80, 0.7);
+  
+  /* Pencil-like effect */
+  background-image: linear-gradient(90deg, 
+    #4CAF50, #66BB6A, #4CAF50, #388E3C, #4CAF50
+  );
+  background-size: 200% 100%;
+  
+  /* Realistic drawing animation */
+  animation-duration: 1s;
+  animation-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+  animation-fill-mode: forwards;
+  
+  /* Create a pencil-like texture */
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));
+}
+
+/* Line classes for different win patterns */
+
+/* Rows */
+.winning-line.row-1, .winning-line.row-2, .winning-line.row-3 {
+  width: 0;
+  left: 10px;
+  animation-name: draw-line;
+}
+
+.winning-line.row-1 {
+  top: 40px; /* Middle of first row */
+}
+
+.winning-line.row-2 {
+  top: 120px; /* Middle of second row */
+}
+
+.winning-line.row-3 {
+  top: 200px; /* Middle of third row */
+}
+
+/* Columns */
+.winning-line.col-1, .winning-line.col-2, .winning-line.col-3 {
+  height: 0;
+  width: 6px;
+  top: 10px;
+  animation-name: draw-line-vertical;
+}
+
+.winning-line.col-1 {
+  left: 40px; /* Middle of first column */
+}
+
+.winning-line.col-2 {
+  left: 120px; /* Middle of second column */
+}
+
+.winning-line.col-3 {
+  left: 200px; /* Middle of third column */
+}
+
+/* SVG Diagonals */
+.winning-line-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+}
+
+.diagonal-line {
+  stroke: url(#greenGradient); /* Use gradient for a nicer pencil-like effect */
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dasharray: 400;
+  stroke-dashoffset: 400;
+  animation: draw-svg-line 1s ease-out forwards;
+  filter: drop-shadow(0 0 3px rgba(76, 175, 80, 0.6));
+}
+
+@keyframes draw-svg-line {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Animations */
+@keyframes draw-line {
+  0% {
+    width: 0;
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    width: calc(100% - 20px);
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes draw-line-vertical {
+  0% {
+    height: 0;
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    height: calc(100% - 20px);
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes draw-line-diagonal-1 {
+  0% {
+    width: 0;
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    /* Further reduced for precise fit */
+    width: 325px;
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes draw-line-diagonal-2 {
+  0% {
+    width: 0;
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    /* Matching diagonal-1 for consistency */
+    width: 325px;
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes pulse-win {
+  0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
 }
 
 .removal-indicator {

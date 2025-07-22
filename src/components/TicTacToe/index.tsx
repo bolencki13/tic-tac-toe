@@ -27,6 +27,8 @@ export function TicTacToe(props: TicTacToe.Props) {
   const [xMoves, setXMoves] = useState<number[]>([]);
   const [oMoves, setOMoves] = useState<number[]>([]);
   const [highlightCell, setHighlightCell] = useState<number | null>(null);
+  // Track winning line indices
+  const [winningLine, setWinningLine] = useState<number[] | null>(null);
 
   // AI player is always 'O', human is always 'X' in single player mode
   const aiPlayer = 'O';
@@ -65,7 +67,7 @@ export function TicTacToe(props: TicTacToe.Props) {
   /**
    * Helpers
    */
-  const calculateWinner = (squares: Array<string | null>): string | null => {
+  const calculateWinner = (squares: Array<string | null>): { winner: string | null; line: number[] | null } => {
     const lines = [
       [0, 1, 2],
       [3, 4, 5],
@@ -77,13 +79,14 @@ export function TicTacToe(props: TicTacToe.Props) {
       [2, 4, 6],
     ];
 
-    for (const [a, b, c] of lines) {
+    for (const line of lines) {
+      const [a, b, c] = line;
       if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-        return squares[a];
+        return { winner: squares[a], line: line };
       }
     }
 
-    return null;
+    return { winner: null, line: null };
   };
 
   // AI move handler
@@ -143,10 +146,11 @@ export function TicTacToe(props: TicTacToe.Props) {
         setBoard(newBoard);
 
         // Check for winner
-        const newWinner = calculateWinner(newBoard);
-        if (newWinner) {
-          setWinner(newWinner);
-          props.onGameEnd?.(newWinner);
+        const result = calculateWinner(newBoard);
+        if (result.winner) {
+          setWinner(result.winner);
+          setWinningLine(result.line);
+          props.onGameEnd?.(result.winner);
         } else if (props.style === 'classic' && newBoard.every(square => square !== null)) {
           // Draw case in classic mode only
           props.onGameEnd?.(null);
@@ -197,10 +201,11 @@ export function TicTacToe(props: TicTacToe.Props) {
     setBoard(newBoard);
 
     // Check for winner
-    const newWinner = calculateWinner(newBoard);
-    if (newWinner) {
-      setWinner(newWinner);
-      props.onGameEnd?.(newWinner);
+    const result = calculateWinner(newBoard);
+    if (result.winner) {
+      setWinner(result.winner);
+      setWinningLine(result.line);
+      props.onGameEnd?.(result.winner);
     } else {
       // In classic mode, check for draw when board is full
       // In limited mode, we never reach a draw by filling the board
@@ -221,12 +226,16 @@ export function TicTacToe(props: TicTacToe.Props) {
     setXMoves([]);
     setOMoves([]);
     setHighlightCell(null);
+    setWinningLine(null);
   };
 
   const renderSquare = (index: number) => {
     // Only highlight if there's no winner yet
     const isHighlighted = !winner && highlightCell === index;
-    const squareClassName = `square ${isHighlighted ? 'highlighted' : ''}`;
+    // Check if this square is part of the winning line
+    const isWinningSquare = winningLine?.includes(index) || false;
+    
+    const squareClassName = `square ${isHighlighted ? 'highlighted' : ''} ${isWinningSquare ? 'winning' : ''}`;
 
     return (
       <button
@@ -256,26 +265,105 @@ export function TicTacToe(props: TicTacToe.Props) {
   }
 
   /**
+   * Get line class based on winning pattern
+   */
+  const getWinningLineClass = () => {
+    if (!winningLine) return '';
+    
+    // Horizontal rows
+    if (winningLine.toString() === [0, 1, 2].toString()) return 'winning-line row-1';
+    if (winningLine.toString() === [3, 4, 5].toString()) return 'winning-line row-2';
+    if (winningLine.toString() === [6, 7, 8].toString()) return 'winning-line row-3';
+    
+    // Vertical columns
+    if (winningLine.toString() === [0, 3, 6].toString()) return 'winning-line col-1';
+    if (winningLine.toString() === [1, 4, 7].toString()) return 'winning-line col-2';
+    if (winningLine.toString() === [2, 5, 8].toString()) return 'winning-line col-3';
+    
+    // Diagonals
+    if (winningLine.toString() === [0, 4, 8].toString()) return 'winning-line diag-1';
+    if (winningLine.toString() === [2, 4, 6].toString()) return 'winning-line diag-2';
+    
+    return '';
+  };
+
+  /**
+   * Render SVG line for diagonals
+   */
+  const renderWinningLine = () => {
+    if (!winningLine) return null;
+    
+    // Horizontal rows
+    if (winningLine.toString() === [0, 1, 2].toString()) return <div className="winning-line row-1"></div>;
+    if (winningLine.toString() === [3, 4, 5].toString()) return <div className="winning-line row-2"></div>;
+    if (winningLine.toString() === [6, 7, 8].toString()) return <div className="winning-line row-3"></div>;
+    
+    // Vertical columns
+    if (winningLine.toString() === [0, 3, 6].toString()) return <div className="winning-line col-1"></div>;
+    if (winningLine.toString() === [1, 4, 7].toString()) return <div className="winning-line col-2"></div>;
+    if (winningLine.toString() === [2, 5, 8].toString()) return <div className="winning-line col-3"></div>;
+    
+    // Diagonals - use SVG for these
+    if (winningLine.toString() === [0, 4, 8].toString()) {
+      return (
+        <svg className="winning-line-svg" viewBox="0 0 244 244" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="greenGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%"   stopColor="#4CAF50" />
+              <stop offset="25%"  stopColor="#66BB6A" />
+              <stop offset="50%"  stopColor="#4CAF50" />
+              <stop offset="75%"  stopColor="#388E3C" />
+              <stop offset="100%" stopColor="#4CAF50" />
+            </linearGradient>
+          </defs>
+          <line x1="10" y1="10" x2="234" y2="234" className="diagonal-line" />
+        </svg>
+      );
+    }
+    if (winningLine.toString() === [2, 4, 6].toString()) {
+      return (
+        <svg className="winning-line-svg" viewBox="0 0 244 244" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="greenGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%"   stopColor="#4CAF50" />
+              <stop offset="25%"  stopColor="#66BB6A" />
+              <stop offset="50%"  stopColor="#4CAF50" />
+              <stop offset="75%"  stopColor="#388E3C" />
+              <stop offset="100%" stopColor="#4CAF50" />
+            </linearGradient>
+          </defs>
+          <line x1="234" y1="10" x2="10" y2="234" className="diagonal-line" />
+        </svg>
+      );
+    }
+    
+    return null;
+  };
+
+  /**
    * Render
    */
   return (
     <div className="tic-tac-toe">
       <div className="status">{status}</div>
-      <div className="board">
-        <div className="board-row">
-          {renderSquare(0)}
-          {renderSquare(1)}
-          {renderSquare(2)}
-        </div>
-        <div className="board-row">
-          {renderSquare(3)}
-          {renderSquare(4)}
-          {renderSquare(5)}
-        </div>
-        <div className="board-row">
-          {renderSquare(6)}
-          {renderSquare(7)}
-          {renderSquare(8)}
+      <div className="board-container">
+        {renderWinningLine()}
+        <div className="board">
+          <div className="board-row">
+            {renderSquare(0)}
+            {renderSquare(1)}
+            {renderSquare(2)}
+          </div>
+          <div className="board-row">
+            {renderSquare(3)}
+            {renderSquare(4)}
+            {renderSquare(5)}
+          </div>
+          <div className="board-row">
+            {renderSquare(6)}
+            {renderSquare(7)}
+            {renderSquare(8)}
+          </div>
         </div>
       </div>
       <button className="reset-button" onClick={resetGame}>
