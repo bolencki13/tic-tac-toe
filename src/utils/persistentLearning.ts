@@ -70,16 +70,33 @@ export function loadLearnedData(): boolean {
       return false;
     }
     
-    // Parse the data - not used yet but will be in future implementation
-    // const parsedBanditData = JSON.parse(banditDataStr);
-    // const parsedBayesianData = JSON.parse(bayesianDataStr);
-    
-    // TODO: Implement the actual restoration of learned state
-    // This would involve recreating the internal state of the bandit and Bayesian systems
-    // For now, we just return true to indicate we found data
-    
-    console.log('AI learning data loaded successfully');
-    return true;
+    // Parse the data
+    try {
+      const parsedBanditData = JSON.parse(banditDataStr);
+      const parsedBayesianData = JSON.parse(bayesianDataStr);
+      
+      // Import functions dynamically to avoid circular dependencies
+      import('./banditStrategies').then(banditModule => {
+        if (typeof banditModule.loadBanditState === 'function') {
+          banditModule.loadBanditState(parsedBanditData);
+        }
+      });
+      
+      import('./bayesianModel').then(bayesianModule => {
+        if (typeof bayesianModule.loadBayesianState === 'function') {
+          bayesianModule.loadBayesianState(parsedBayesianData);
+        }
+      });
+      
+      console.log('AI learning data loaded successfully');
+      return true;
+    } catch (parseError) {
+      console.error('Error parsing stored AI data:', parseError);
+      // If parsing fails, remove the corrupted data
+      localStorage.removeItem(BANDIT_STORAGE_KEY);
+      localStorage.removeItem(BAYESIAN_STORAGE_KEY);
+      return false;
+    }
   } catch (error) {
     console.error('Error loading AI learning data:', error);
     return false;

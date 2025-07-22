@@ -551,3 +551,41 @@ export function resetBandit(): void {
   
   currentStrategy = null;
 }
+
+/**
+ * Load bandit state from saved data
+ */
+export function loadBanditState(data: BanditStats): boolean {
+  try {
+    if (!data || !data.strategies || !Array.isArray(data.strategies)) {
+      return false;
+    }
+    
+    // Reset first to ensure clean state
+    resetBandit();
+    
+    // Update strategies with saved data
+    data.strategies.forEach(savedStrategy => {
+      const strategy = strategies.get(savedStrategy.name as StrategyName);
+      if (strategy) {
+        // Use saved values, but ensure they're valid
+        strategy.wins = Math.max(1, savedStrategy.wins || 1);
+        strategy.losses = Math.max(1, savedStrategy.losses || 1);
+        strategy.draws = Math.max(0, savedStrategy.draws || 0);
+        strategy.total = Math.max(2, savedStrategy.total || 2);
+        strategy.alpha = Math.max(1, savedStrategy.alpha || 1);
+        strategy.beta = Math.max(1, savedStrategy.beta || 1);
+      }
+    });
+    
+    // Restore current strategy if valid
+    if (data.currentStrategy) {
+      currentStrategy = data.currentStrategy;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error loading bandit state:', error);
+    return false;
+  }
+}

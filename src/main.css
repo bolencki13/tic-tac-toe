@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./styles/breakpoints.css";
+@import "./components/SettingsModal/styles.css";
 
 /* Difficulty Selector */
 .difficulty-selector {

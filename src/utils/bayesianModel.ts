@@ -280,10 +280,52 @@ export function getBayesianCounterMove(board: Board): MoveResult | null {
 }
 
 /**
- * Resets the Bayesian model (for testing)
+ * Resets the Bayesian model
  */
 export function resetBayesianModel(): void {
   conditionalProbabilities.clear();
+}
+
+/**
+ * Load Bayesian state from saved data
+ */
+export function loadBayesianState(data: BayesianStats): boolean {
+  try {
+    if (!data || !data.patternDetails || !Array.isArray(data.patternDetails)) {
+      return false;
+    }
+    
+    // Reset first to ensure clean state
+    resetBayesianModel();
+    
+    // Reconstruct the conditional probabilities from saved data
+    data.patternDetails.forEach(pattern => {
+      if (!pattern.boardState || !pattern.probabilities || !Array.isArray(pattern.probabilities)) {
+        return;
+      }
+      
+      const moveProbabilities = new Map<number, number>();
+      pattern.probabilities.forEach(moveProb => {
+        if (moveProb.move !== undefined && moveProb.probability !== undefined) {
+          moveProbabilities.set(moveProb.move, moveProb.probability);
+        }
+      });
+      
+      // Create and store the conditional probability
+      const conditionalProb: ConditionalProbability = {
+        boardState: pattern.boardState,
+        moveProbabilities,
+        totalObservations: Math.max(1, pattern.observations || 1)
+      };
+      
+      conditionalProbabilities.set(pattern.boardState, conditionalProb);
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Error loading Bayesian state:', error);
+    return false;
+  }
 }
 
 /**

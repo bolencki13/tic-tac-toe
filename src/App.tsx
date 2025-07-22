@@ -1,12 +1,14 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { GameProvider } from './contexts/GameContext';
 import { useGame } from './hooks/useGame';
+import './components/SettingsModal/styles.css';
 
 // Lazy-loaded components
 const TicTacToe = lazy(() => import('./components/TicTacToe').then(module => ({ default: module.TicTacToe })));
 const GameModeSelector = lazy(() => import('./components/GameModeSelector').then(module => ({ default: module.GameModeSelector })));
 const GameStyleSelector = lazy(() => import('./components/GameStyleSelector').then(module => ({ default: module.GameStyleSelector })));
 const ScoreBoard = lazy(() => import('./components/ScoreBoard').then(module => ({ default: module.ScoreBoard })));
+const SettingsModal = lazy(() => import('./components/SettingsModal').then(module => ({ default: module.SettingsModal })));
 
 function GameApp() {
   const { 
@@ -21,36 +23,9 @@ function GameApp() {
     resetGame
   } = useGame();
   
-  // Show difficulty selector for single player mode
-  const renderDifficultySelector = () => {
-    if (gameMode !== 'single') return null;
-    
-    return (
-      <div className="difficulty-selector">
-        <h3>Select Difficulty</h3>
-        <div className="difficulty-buttons">
-          <button 
-            className={`difficulty-button ${difficulty === 'easy' ? 'active' : ''}`}
-            onClick={() => setDifficulty('easy')}
-          >
-            Easy
-          </button>
-          <button 
-            className={`difficulty-button ${difficulty === 'medium' ? 'active' : ''}`}
-            onClick={() => setDifficulty('medium')}
-          >
-            Medium
-          </button>
-          <button 
-            className={`difficulty-button ${difficulty === 'hard' ? 'active' : ''}`}
-            onClick={() => setDifficulty('hard')}
-          >
-            Hard
-          </button>
-        </div>
-      </div>
-    );
-  };
+  const [isSettingsModalOpen, setSettingsModalOpen] = useState(false);
+  
+  // No more difficulty selector in the main UI - moved to the settings modal
   
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4 gap-6 max-w-[800px] mx-auto">
@@ -71,8 +46,6 @@ function GameApp() {
           </>
         ) : (
           <>
-            {renderDifficultySelector()}
-            
             {/* Score Board */}
             <ScoreBoard scores={scores} gameMode={gameMode} />
             
@@ -82,6 +55,17 @@ function GameApp() {
               difficulty={difficulty}
               onGameEnd={handleGameEnd} 
             />
+            
+            {/* Settings button (visible in single player mode) */}
+            {gameMode === 'single' && (
+              <button 
+                className="back-button mt-4"
+                onClick={() => setSettingsModalOpen(true)}
+              >
+                Game Settings
+              </button>
+            )}
+            
             <button 
               className="back-button mt-4"
               onClick={() => setGameStyle(null)}
@@ -94,6 +78,17 @@ function GameApp() {
             >
               Back to Mode Selection
             </button>
+            
+            {/* Settings Modal */}
+            <Suspense fallback={<div>Loading...</div>}>
+              <SettingsModal 
+                isOpen={isSettingsModalOpen} 
+                onClose={() => setSettingsModalOpen(false)}
+                difficulty={difficulty}
+                setDifficulty={setDifficulty}
+                gameMode={gameMode}
+              />
+            </Suspense>
           </>
         )}
       </Suspense>
