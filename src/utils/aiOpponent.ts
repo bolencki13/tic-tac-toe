@@ -5,6 +5,7 @@
 import { findBestLimitedMove } from './limitedModeAI';
 import { hasWinningMove, hasForkMove } from './boardEvaluator';
 import type { Board, MoveResult, GameStyle } from './gameTypes';
+import { getBayesianCounterMove } from './bayesianModel';
 
 // Cache for minimax results to avoid recalculating the same positions
 const minimaxCache = new Map<string, number>();
@@ -72,7 +73,7 @@ export function findBestMove(
   }
 
   // 3. For medium and hard mode, use adaptive learning to predict player moves
-  const adaptiveMove = getAdaptiveCounterMove(board, humanPlayer);
+  const adaptiveMove = getBayesianCounterMove(board);
   if (adaptiveMove !== null) {
     // Different adaptation rates based on difficulty
     if (difficulty === 'hard' && Math.random() < 0.9) {

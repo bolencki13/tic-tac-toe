@@ -1,5 +1,5 @@
 import { createContext } from 'react';
-import type { TicTacToe } from '../components/TicTacToe/types';
+import type { TicTacToe } from '../components/TicTacToe/TicTacToe';
 
 export interface GameContextType {
   scores: {

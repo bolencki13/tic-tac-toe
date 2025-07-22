@@ -1,11 +1,13 @@
-import { useState, type ReactNode, useCallback } from 'react';
-import type { TicTacToe } from '../components/TicTacToe/types';
+import { useState, type ReactNode, useCallback, useEffect } from 'react';
+import type { TicTacToe } from '../components/TicTacToe/TicTacToe';
 import { GameContext } from './GameContextType';
+import { loadDifficulty, saveDifficulty } from '../utils/gameSettings';
 
 export function GameProvider({ children }: { children: ReactNode }) {
   const [gameMode, setGameModeState] = useState<TicTacToe.GameMode | null>(null);
   const [gameStyle, setGameStyleState] = useState<TicTacToe.GameStyle | null>(null);
-  const [difficulty, setDifficulty] = useState<TicTacToe.Difficulty>('medium');
+  // Load the difficulty from localStorage or use 'medium' as default
+  const [difficulty, setDifficultyState] = useState<TicTacToe.Difficulty>(() => loadDifficulty());
   const [scores, setScores] = useState({
     player1: 0, // X player (human in single mode)
     player2: 0, // O player (AI in single mode)
@@ -71,6 +73,22 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setGameStyleState(null);
     resetScores();
   }, [resetScores]);
+
+  // Custom setDifficulty function that also saves to localStorage
+  const setDifficulty = useCallback((newDifficulty: TicTacToe.Difficulty) => {
+    setDifficultyState(newDifficulty);
+    // Only persist the setting for single player mode
+    if (gameMode === 'single') {
+      saveDifficulty(newDifficulty);
+    }
+  }, [gameMode]);
+
+  // Effect to save difficulty when gameMode changes to single
+  useEffect(() => {
+    if (gameMode === 'single') {
+      saveDifficulty(difficulty);
+    }
+  }, [gameMode, difficulty]);
 
   const value = {
     scores,
