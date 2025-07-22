@@ -1,6 +1,6 @@
 # Advanced Tic Tac Toe
 
-A sophisticated Tic Tac Toe implementation featuring adaptive AI, multiple game modes, and a responsive design.
+A sophisticated Tic Tac Toe implementation featuring adaptive AI, multiple game modes, and a responsive design. Come play at [https://bolencki13.github.io/tic-tac-toe/](https://bolencki13.github.io/tic-tac-toe/)!
 
 ## 🎮 Overview
 
