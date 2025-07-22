@@ -11,6 +11,7 @@ import { getBayesianStats, resetBayesianModel } from './bayesianModel';
 const STORAGE_KEY_PREFIX = 'tictactoe_ai_';
 const BANDIT_STORAGE_KEY = `${STORAGE_KEY_PREFIX}bandit`;
 const BAYESIAN_STORAGE_KEY = `${STORAGE_KEY_PREFIX}bayesian`;
+const TIMESTAMP_STORAGE_KEY = `${STORAGE_KEY_PREFIX}timestamp`;
 const LEARNING_VERSION = '1.0.0'; // Version to handle data format changes
 
 // Interface for persistable state
@@ -46,6 +47,12 @@ export function saveLearnedData(): boolean {
     localStorage.setItem(
       BAYESIAN_STORAGE_KEY, 
       JSON.stringify(stateToSave.bayesianData)
+    );
+    
+    // Save the timestamp separately
+    localStorage.setItem(
+      TIMESTAMP_STORAGE_KEY,
+      JSON.stringify({ timestamp: Date.now() })
     );
     
     console.log('AI learning data saved successfully');
@@ -110,6 +117,7 @@ export function resetLearnedData(): void {
   // Clear localStorage
   localStorage.removeItem(BANDIT_STORAGE_KEY);
   localStorage.removeItem(BAYESIAN_STORAGE_KEY);
+  localStorage.removeItem(TIMESTAMP_STORAGE_KEY);
   
   // Reset the learning systems
   resetBandit();
@@ -141,12 +149,13 @@ export function getLearningStats(): LearningStats {
   try {
     const banditDataStr = localStorage.getItem(BANDIT_STORAGE_KEY);
     const bayesianDataStr = localStorage.getItem(BAYESIAN_STORAGE_KEY);
+    const timestampData = localStorage.getItem(TIMESTAMP_STORAGE_KEY);
     
     persistenceInfo = {
       hasSavedBanditData: !!banditDataStr,
       hasSavedBayesianData: !!bayesianDataStr,
-      lastSavedTimestamp: banditDataStr 
-        ? JSON.parse(banditDataStr).timestamp || null 
+      lastSavedTimestamp: timestampData 
+        ? JSON.parse(timestampData).timestamp 
         : null
     };
   } catch (error) {
