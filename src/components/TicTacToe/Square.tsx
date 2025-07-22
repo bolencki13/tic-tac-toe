@@ -54,6 +54,8 @@ export const Square = memo(function Square(props: Square.Props) {
             r="25"
             stroke="#e74c3c"
             strokeWidth="12"
+            strokeLinecap="round"
+            strokeLinejoin="round"
             fill="none"
           />
         </svg>
