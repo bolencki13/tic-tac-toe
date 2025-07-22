@@ -55,9 +55,12 @@ export function useGameState(props: {
 
   /**
    * Reset game state
+   * @param initialMove Optional index to place a move right after resetting
    */
-  const resetGame = useCallback(() => {
-    setBoard(Array(9).fill(null));
+  const resetGame = useCallback((initialMove?: number) => {
+    // Reset all state variables
+    const newBoard = Array(9).fill(null);
+    setBoard(newBoard);
     setIsXNext(true);
     setWinner(null);
     setIsAIThinking(false);
@@ -65,36 +68,27 @@ export function useGameState(props: {
     setOMoves([]);
     setHighlightCell(null);
     setWinningLine(null);
-  }, []);
 
-  /**
-   * Effect to trigger AI move when it's AI's turn in single player mode
-   */
-  useEffect(() => {
-    if (mode === 'single' && !isXNext && !winner) {
-      makeAIMove();
-    }
-  }, [isXNext, winner, mode]);
+    // If an initial move was provided, place it after resetting
+    if (initialMove !== undefined && initialMove >= 0 && initialMove < 9) {
+      // Small delay to ensure state is updated before placing the move
+      setTimeout(() => {
+        // Update the board with the new move (player X always starts)
+        const updatedBoard = [...newBoard];
+        updatedBoard[initialMove] = 'X';
+        setBoard(updatedBoard);
 
-  /**
-   * Effect to highlight the next piece to be removed in limited mode
-   */
-  useEffect(() => {
-    // Don't highlight any cell if there's a winner or if not in limited mode
-    if (winner || style !== 'limited') {
-      setHighlightCell(null);
-      return;
-    }
+        // Update moves history for limited mode
+        if (style === 'limited') {
+          setXMoves([initialMove]);
+        }
 
-    // Highlight the oldest piece for the next player (only if no winner)
-    if (isXNext && xMoves.length === MAX_MOVES_PER_PLAYER) {
-      setHighlightCell(xMoves[0]);
-    } else if (!isXNext && oMoves.length === MAX_MOVES_PER_PLAYER) {
-      setHighlightCell(oMoves[0]);
-    } else {
-      setHighlightCell(null);
+        // Set next player to O
+        setIsXNext(false);
+      }, 10);
     }
-  }, [isXNext, xMoves, oMoves, style, winner]);
+  }, [style]);
+
 
   /**
    * AI move handler
@@ -172,11 +166,46 @@ export function useGameState(props: {
   }, [board, isXNext, winner, style, difficulty, oMoves, calculateWinner, onGameEnd]);
 
   /**
+   * Effect to trigger AI move when it's AI's turn in single player mode
+   */
+  useEffect(() => {
+    if (mode === 'single' && !isXNext && !winner) {
+      makeAIMove();
+    }
+  }, [isXNext, winner, mode, makeAIMove]);
+
+  /**
+   * Effect to highlight the next piece to be removed in limited mode
+   */
+  useEffect(() => {
+    // Don't highlight any cell if there's a winner or if not in limited mode
+    if (winner || style !== 'limited') {
+      setHighlightCell(null);
+      return;
+    }
+
+    // Highlight the oldest piece for the next player (only if no winner)
+    if (isXNext && xMoves.length === MAX_MOVES_PER_PLAYER) {
+      setHighlightCell(xMoves[0]);
+    } else if (!isXNext && oMoves.length === MAX_MOVES_PER_PLAYER) {
+      setHighlightCell(oMoves[0]);
+    } else {
+      setHighlightCell(null);
+    }
+  }, [isXNext, xMoves, oMoves, style, winner]);
+
+  /**
    * Handle human player click
    */
   const handleClick = useCallback((index: number) => {
-    // If square is occupied, game is over, or AI is thinking, do nothing
-    if (board[index] || winner || (mode === 'single' && !isXNext) || isAIThinking) {
+    // If there's a winner, start a new game and place a move at the clicked position
+    if (winner) {
+      resetGame(index);
+      return;
+    }
+
+    // If square is occupied, AI is thinking, or it's AI's turn, do nothing
+    if (board[index] || (mode === 'single' && !isXNext) || isAIThinking) {
       return;
     }
 
@@ -227,7 +256,7 @@ export function useGameState(props: {
         setIsXNext(!isXNext);
       }
     }
-  }, [board, winner, mode, isXNext, isAIThinking, style, xMoves, oMoves, calculateWinner, onGameEnd]);
+  }, [board, winner, mode, isXNext, isAIThinking, style, xMoves, oMoves, calculateWinner, onGameEnd, resetGame]);
 
   // Check if the game is a draw
   const isDraw = style === 'classic' && board.every(square => square !== null) && !winner;
