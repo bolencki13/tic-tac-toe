@@ -46,19 +46,21 @@ export function TicTacToe(props: TicTacToe.Props) {
 
   // Effect to highlight the next piece to be removed in limited mode
   useEffect(() => {
-    if (props.style === 'limited') {
-      // Highlight the oldest piece for the next player
-      if (isXNext && xMoves.length === MAX_MOVES_PER_PLAYER) {
-        setHighlightCell(xMoves[0]);
-      } else if (!isXNext && oMoves.length === MAX_MOVES_PER_PLAYER) {
-        setHighlightCell(oMoves[0]);
-      } else {
-        setHighlightCell(null);
-      }
+    // Don't highlight any cell if there's a winner or if not in limited mode
+    if (winner || props.style !== 'limited') {
+      setHighlightCell(null);
+      return;
+    }
+    
+    // Highlight the oldest piece for the next player (only if no winner)
+    if (isXNext && xMoves.length === MAX_MOVES_PER_PLAYER) {
+      setHighlightCell(xMoves[0]);
+    } else if (!isXNext && oMoves.length === MAX_MOVES_PER_PLAYER) {
+      setHighlightCell(oMoves[0]);
     } else {
       setHighlightCell(null);
     }
-  }, [isXNext, xMoves, oMoves, props.style]);
+  }, [isXNext, xMoves, oMoves, props.style, winner]);
 
   /**
    * Helpers
@@ -222,7 +224,8 @@ export function TicTacToe(props: TicTacToe.Props) {
   };
 
   const renderSquare = (index: number) => {
-    const isHighlighted = highlightCell === index;
+    // Only highlight if there's no winner yet
+    const isHighlighted = !winner && highlightCell === index;
     const squareClassName = `square ${isHighlighted ? 'highlighted' : ''}`;
 
     return (
