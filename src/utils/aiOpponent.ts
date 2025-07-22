@@ -1,10 +1,10 @@
 /**
  * AI Opponent utilities for Tic Tac Toe
- * Optimized with memoization for better performance
+ * Optimized with memoization and advanced strategies
  */
-
-export type Board = Array<string | null>;
-export type MoveResult = number;
+import { findBestLimitedMove } from './limitedModeAI';
+import { hasWinningMove, hasForkMove } from './boardEvaluator';
+import type { Board, MoveResult, GameStyle } from './gameTypes';
 
 // Cache for minimax results to avoid recalculating the same positions
 const minimaxCache = new Map<string, number>();
@@ -18,13 +18,27 @@ function getBoardHash(board: Board, isMaximizing: boolean, depth: number): strin
 
 /**
  * Finds the best move for the AI using the minimax algorithm with memoization
+ * @param gameStyle - The style of game being played (classic or limited)
+ * @param xMoves - Array of X's moves (for limited mode)
+ * @param oMoves - Array of O's moves (for limited mode)
  */
-export function findBestMove(board: Board, aiPlayer: string): MoveResult {
+export function findBestMove(
+  board: Board,
+  aiPlayer: string,
+  gameStyle: GameStyle = 'classic',
+  xMoves: number[] = [],
+  oMoves: number[] = []
+): MoveResult {
+  // For limited mode, use specialized algorithm
+  if (gameStyle === 'limited') {
+    return findBestLimitedMove(board, aiPlayer, xMoves, oMoves);
+  }
+
   // Reset cache for new board evaluation to prevent memory leaks
   if (minimaxCache.size > 1000) {
     minimaxCache.clear();
   }
-  
+
   // Check for empty spaces
   const emptyIndices = board
     .map((square, index) => (square === null ? index : null))
@@ -43,6 +57,37 @@ export function findBestMove(board: Board, aiPlayer: string): MoveResult {
   // Human player is the opposite of AI player
   const humanPlayer = aiPlayer === 'X' ? 'O' : 'X';
 
+  // Strategy optimizations for first few moves
+  // 1. Check for immediate win
+  const winningMove = hasWinningMove(board, aiPlayer);
+  if (winningMove !== null) {
+    return winningMove;
+  }
+
+  // 2. Check if need to block opponent from winning
+  const blockingMove = hasWinningMove(board, humanPlayer);
+  if (blockingMove !== null) {
+    return blockingMove;
+  }
+
+  // 3. Check for fork opportunity
+  const forkMove = hasForkMove(board, aiPlayer);
+  if (forkMove !== null) {
+    return forkMove;
+  }
+
+  // 4. Check if need to block opponent's fork
+  const blockForkMove = hasForkMove(board, humanPlayer);
+  if (blockForkMove !== null) {
+    return blockForkMove;
+  }
+
+  // 5. Take center if empty
+  if (board[4] === null) {
+    return 4;
+  }
+
+  // Fall back to minimax for deeper evaluation
   // Initialize best move and score
   let bestMove: number = -1;
   let bestScore = -Infinity;
@@ -69,25 +114,26 @@ export function findBestMove(board: Board, aiPlayer: string): MoveResult {
 }
 
 /**
- * Minimax algorithm for determining the best move with alpha-beta pruning
+ * Minimax algorithm for determining the best move with alpha-beta pruning and deeper search
  */
 function minimax(
   board: Board,
-  depth: number,
+  depth: number, // Increased depth for harder AI
   isMaximizing: boolean,
   aiPlayer: string,
   humanPlayer: string,
   alpha: number = -Infinity,
-  beta: number = Infinity
+  beta: number = Infinity,
+  maxDepth: number = 10 // Allow deeper search for harder difficulties
 ): number {
   // Create a cache key for this board state
   const cacheKey = getBoardHash(board, isMaximizing, depth);
-  
+
   // Check if we've already calculated this position
   if (minimaxCache.has(cacheKey)) {
     return minimaxCache.get(cacheKey)!;
   }
-  
+
   // Check if game is over
   const winner = checkWinner(board);
   if (winner !== null) {
@@ -117,7 +163,7 @@ function minimax(
     }
     minimaxCache.set(cacheKey, bestScore);
     return bestScore;
-  } 
+  }
   // Minimizing player (Human)
   else {
     let bestScore = Infinity;
@@ -161,9 +207,45 @@ function checkWinner(board: Board): string | null {
 }
 
 /**
- * Returns a random valid move (for easy difficulty)
+ * Returns a random valid move but prefers winning moves (for easy difficulty)
  */
-export function findRandomMove(board: Board): MoveResult {
+export function findRandomMove(
+  board: Board,
+  aiPlayer: string = 'O',
+  gameStyle: GameStyle = 'classic',
+  xMoves: number[] = [],
+  oMoves: number[] = []
+): MoveResult {
+  const humanPlayer = aiPlayer === 'X' ? 'O' : 'X';
+
+  // Even on easy, the AI should take obvious wins
+  const winningMove = hasWinningMove(board, aiPlayer);
+  if (winningMove !== null && Math.random() > 0.2) { // 80% chance to take the win
+    return winningMove;
+  }
+
+  // 50% chance to block an obvious loss
+  const blockingMove = hasWinningMove(board, humanPlayer);
+  if (blockingMove !== null && Math.random() > 0.5) {
+    return blockingMove;
+  }
+
+  // For limited mode with full moves, prefer replacing the oldest move
+  if (gameStyle === 'limited') {
+    const aiMoves = aiPlayer === 'X' ? xMoves : oMoves;
+    if (aiMoves.length >= 3) {
+      const emptyIndices = board
+        .map((square, index) => (square === null ? index : null))
+        .filter((index): index is number => index !== null);
+
+      if (emptyIndices.length > 0) {
+        const randomIndex = Math.floor(Math.random() * emptyIndices.length);
+        return emptyIndices[randomIndex];
+      }
+    }
+  }
+
+  // Get all empty squares
   const emptyIndices = board
     .map((square, index) => (square === null ? index : null))
     .filter((index): index is number => index !== null);
@@ -172,6 +254,14 @@ export function findRandomMove(board: Board): MoveResult {
     return -1;
   }
 
+  // Slightly prefer center and corners
+  const preferredMoves = [4, 0, 2, 6, 8].filter(index => board[index] === null);
+  if (preferredMoves.length > 0 && Math.random() > 0.5) {
+    const randomPreferredIndex = Math.floor(Math.random() * preferredMoves.length);
+    return preferredMoves[randomPreferredIndex];
+  }
+
+  // Otherwise pick randomly from all empty squares
   const randomIndex = Math.floor(Math.random() * emptyIndices.length);
   return emptyIndices[randomIndex];
 }

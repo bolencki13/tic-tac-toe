@@ -9,7 +9,7 @@ export function useGameState(props: {
   onGameEnd?: (winner: string | null) => void;
 }) {
   const { mode, style, difficulty, onGameEnd } = props;
-  
+
   // Game state
   const [board, setBoard] = useState<Array<string | null>>(Array(9).fill(null));
   const [isXNext, setIsXNext] = useState<boolean>(true);
@@ -52,7 +52,7 @@ export function useGameState(props: {
 
     return { winner: null, line: null };
   }, []);
-  
+
   /**
    * Reset game state
    */
@@ -85,7 +85,7 @@ export function useGameState(props: {
       setHighlightCell(null);
       return;
     }
-    
+
     // Highlight the oldest piece for the next player (only if no winner)
     if (isXNext && xMoves.length === MAX_MOVES_PER_PLAYER) {
       setHighlightCell(xMoves[0]);
@@ -120,17 +120,17 @@ export function useGameState(props: {
       // Choose AI move based on difficulty
       switch (difficulty) {
         case 'easy':
-          moveIndex = findRandomMove(newBoard);
+          moveIndex = findRandomMove(newBoard, aiPlayer, style, xMoves, oMoves);
           break;
         case 'medium':
           // 50% chance to make a random move, 50% chance to make the best move
           moveIndex = Math.random() > 0.5
-            ? findRandomMove(newBoard)
-            : findBestMove(newBoard, aiPlayer);
+            ? findRandomMove(newBoard, aiPlayer, style, xMoves, oMoves)
+            : findBestMove(newBoard, aiPlayer, style, xMoves, oMoves);
           break;
         case 'hard':
         default:
-          moveIndex = findBestMove(newBoard, aiPlayer);
+          moveIndex = findBestMove(newBoard, aiPlayer, style, xMoves, oMoves);
           break;
       }
 
