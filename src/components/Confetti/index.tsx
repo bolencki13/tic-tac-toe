@@ -28,20 +28,17 @@ export function Confetti(props: Confetti.Props) {
       
       // Create multiple confetti elements - significantly increased for better coverage
       for (let i = 0; i < 500; i++) {
-        // Random distance and angle from center for explosion effect
-        // Using a variety of distances to create layers of confetti
-        const distanceTiers = [
-          Math.random() * 200 + 100,  // Close range
-          Math.random() * 400 + 200,  // Medium range
-          Math.random() * 600 + 300   // Far range
-        ];
-        const distance = distanceTiers[Math.floor(Math.random() * distanceTiers.length)];
+        // More consistent distance from center for smoother animation
+        // Use linear distribution instead of tiered distances
+        const minDistance = 100;
+        const maxDistance = 800;
+        const distance = minDistance + Math.random() * (maxDistance - minDistance);
         const angle = Math.random() * 360; // Angle in degrees
         const randomX = distance * Math.cos(angle * Math.PI / 180);
         const randomY = distance * Math.sin(angle * Math.PI / 180);
         
-        // Random animation delay and speed
-        const animationDelay = `${Math.random() * 0.5}s`;
+        // Slightly reduced random delay range for more simultaneous movement
+        const animationDelay = `${Math.random() * 0.2}s`;
         const randomSpeed = Math.random();
         
         // Mostly smaller confetti pieces with occasional larger ones
@@ -96,10 +93,10 @@ export function Confetti(props: Confetti.Props) {
       
       setConfettiElements(elements);
       
-      // Clean up after animation ends - longer duration to allow all particles to finish
+      // Clean up after animation ends
       const timer = setTimeout(() => {
         setConfettiElements([]);
-      }, 4500); // Longer duration to accommodate particles traveling further
+      }, 3500); // Adjusted for smoother animation duration
       
       return () => {
         clearTimeout(timer);
