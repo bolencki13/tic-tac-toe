@@ -31,6 +31,11 @@ export function Button(props: Button.Props) {
   // state vars and declarations
 
   /**
+   * Side effects
+   */
+  // put any useEffects here
+
+  /**
    * Render
    */
    return (
