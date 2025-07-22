@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { getLearningStats, resetLearnedData } from '../../utils/persistentLearning';
 import type { LearningStats } from '../../utils/persistentLearning';
-import type { TicTacToe } from '../../components/TicTacToe/types';
+import type { TicTacToe } from '../../components/TicTacToe/TicTacToe';
+import type { BanditStats } from '../../utils/banditStrategies';
+import type { BayesianStats } from '../../utils/bayesianModel';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -46,7 +48,7 @@ export function SettingsModal({ isOpen, onClose, difficulty, setDifficulty, game
   const renderBanditStats = () => {
     if (!stats || !stats.bandit) return null;
     
-    const banditStats = stats.bandit as any; // Type assertion for the unknown type
+    const banditStats = stats.bandit as BanditStats; // Type assertion for the bandit stats
     
     if (!banditStats.strategies || !Array.isArray(banditStats.strategies)) {
       return <p>No strategy data available</p>;
@@ -67,7 +69,7 @@ export function SettingsModal({ isOpen, onClose, difficulty, setDifficulty, game
               </tr>
             </thead>
             <tbody>
-              {banditStats.strategies.map((strategy: any) => (
+              {banditStats.strategies.map((strategy) => (
                 <tr key={strategy.name}>
                   <td>{strategy.name}</td>
                   <td>{(strategy.winRate * 100).toFixed(1)}%</td>
@@ -90,7 +92,7 @@ export function SettingsModal({ isOpen, onClose, difficulty, setDifficulty, game
   const renderBayesianStats = () => {
     if (!stats || !stats.bayesian) return null;
     
-    const bayesianStats = stats.bayesian as any; // Type assertion for the unknown type
+    const bayesianStats = stats.bayesian as BayesianStats; // Type assertion for the bayesian stats
     
     if (!bayesianStats.totalPatterns || bayesianStats.totalPatterns <= 0) {
       return <p>No pattern data available</p>;
@@ -106,7 +108,7 @@ export function SettingsModal({ isOpen, onClose, difficulty, setDifficulty, game
           <div className="pattern-preview">
             <h4>Top Patterns:</h4>
             <ul className="pattern-list">
-              {bayesianStats.patternDetails.slice(0, 3).map((pattern: any, idx: number) => (
+              {bayesianStats.patternDetails.slice(0, 3).map((pattern, idx: number) => (
                 <li key={idx}>
                   <div className="mini-board">
                     {pattern.boardState.split('').map((cell: string, i: number) => (

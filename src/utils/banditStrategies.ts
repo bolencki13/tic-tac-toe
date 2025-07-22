@@ -455,7 +455,7 @@ export function getStrategyMove(
       return findBestMoveMCTS(board, aiPlayer);
     
     case 'bayesian': {
-      const bayesianMove = getBayesianCounterMove(board, aiPlayer);
+      const bayesianMove = getBayesianCounterMove(board);
       if (bayesianMove !== null) {
         return bayesianMove;
       }

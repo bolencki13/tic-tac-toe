@@ -63,7 +63,10 @@ export const TicTacToe = memo(function TicTacToe(props: TicTacToe.Props) {
       </div>
 
       {/* Reset/New Game button */}
-      <button className="reset-button" onClick={resetGame}>
+      <button 
+        className="reset-button" 
+        onClick={() => resetGame()}
+      >
         {winner ? 'New Game' : 'Reset Game'}
       </button>
     </div>

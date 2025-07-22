@@ -6,7 +6,7 @@ import {
   recordGameResultAdvanced,
   initializeAdvancedAI
 } from '../utils/advancedAI';
-import type { TicTacToe } from '../components/TicTacToe/types';
+import type { TicTacToe } from '../components/TicTacToe/TicTacToe';
 
 export function useGameState(props: {
   mode: TicTacToe.GameMode;

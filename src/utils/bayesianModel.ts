@@ -146,7 +146,7 @@ function mapMoveToOrientation(
     }
     
     // Apply inverse transformation to target orientation
-    const inverseTransform = transform.map((val, idx) => 
+    const inverseTransform = transform.map((_, idx) => 
       transform.findIndex(v => v === idx));
     const transformedTo = inverseTransform.map(i => toOrientation[i]).join('');
     if (transformedTo === fromOrientation) {

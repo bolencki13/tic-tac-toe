@@ -163,7 +163,7 @@ export function getLearningStats(): LearningStats {
       hasSavedBanditData: false,
       hasSavedBayesianData: false,
       lastSavedTimestamp: null,
-      error: error.message
+      error: error instanceof Error ? error.message : String(error)
     };
   }
   

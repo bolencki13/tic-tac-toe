@@ -60,8 +60,18 @@ export function Confetti(props: Confetti.Props) {
         const shapeTypes = ['square', 'circle', 'triangle', 'star', 'heart'];
         const shape = shapeTypes[Math.floor(Math.random() * shapeTypes.length)];
         
+        // Create a custom CSS Properties type with our custom properties
+        interface CustomCSSProperties extends React.CSSProperties {
+          '--random-x': string;
+          '--random-y': string;
+          '--random-rotate': string;
+          '--random-speed': string;
+          '--triangle-color'?: string;
+          '--heart-color'?: string;
+        }
+        
         // Set CSS variables for the explosion effect
-        const style: React.CSSProperties = {
+        const style: CustomCSSProperties = {
           '--random-x': `${randomX}px`,
           '--random-y': `${randomY}px`,
           '--random-rotate': `${rotateAmount}deg`,
@@ -70,7 +80,7 @@ export function Confetti(props: Confetti.Props) {
           width: `${size}px`,
           height: `${size}px`,
           animationDelay,
-        } as React.CSSProperties;
+        };
         
         // For triangle and heart shapes
         if (shape === 'triangle') {
