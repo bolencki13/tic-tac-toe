@@ -31,7 +31,7 @@ export const Square = memo(function Square(props: Square.Props) {
             className="symbol-path x-symbol-1" 
             d="M20,20 L60,60"
             stroke="#3498db"
-            strokeWidth="8"
+            strokeWidth="12"
             strokeLinecap="round"
           />
           {/* Second stroke of X */}
@@ -39,7 +39,7 @@ export const Square = memo(function Square(props: Square.Props) {
             className="symbol-path x-symbol-2" 
             d="M60,20 L20,60"
             stroke="#3498db"
-            strokeWidth="8"
+            strokeWidth="12"
             strokeLinecap="round"
           />
         </svg>
@@ -53,7 +53,7 @@ export const Square = memo(function Square(props: Square.Props) {
             cy="40" 
             r="25"
             stroke="#e74c3c"
-            strokeWidth="8"
+            strokeWidth="12"
             fill="none"
           />
         </svg>

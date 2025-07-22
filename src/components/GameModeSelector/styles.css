@@ -2,32 +2,44 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
-  padding: 20px;
+  gap: var(--spacing-lg, 20px);
+  padding: var(--spacing-lg, 20px);
   border-radius: 8px;
   background-color: #f9f9f9;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 500px;
 }
 
 .game-mode-selector h2 {
   margin: 0;
   color: #333;
-  font-size: 1.8rem;
+  font-size: var(--font-size-2xl, 1.8rem);
+  text-align: center;
 }
 
 .mode-buttons {
   display: flex;
-  gap: 15px;
+  gap: var(--spacing-md, 15px);
+  width: 100%;
+  justify-content: center;
+  flex-wrap: wrap; /* Allow buttons to wrap on very small screens */
 }
 
 .mode-button {
-  padding: 12px 24px;
-  font-size: 1.1rem;
+  padding: var(--spacing-sm, 12px) var(--spacing-lg, 24px);
+  font-size: var(--font-size-lg, 1.1rem);
   font-weight: 600;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s;
+  min-height: 44px; /* Minimum touch target size */
+  min-width: 120px; /* Ensure button is easy to tap */
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  flex: 1;
+  max-width: 200px; /* Prevent buttons from getting too wide */
 }
 
 .mode-button:nth-child(1) {
@@ -43,4 +55,31 @@
 .mode-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+@media (hover: none) {
+  /* Touch device specific styles */
+  .mode-button:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  }
+  
+  .mode-button:hover {
+    /* Disable hover effect on touch devices */
+    transform: none;
+  }
+}
+
+/* Small screens */
+@media (max-width: 640px) {
+  .mode-buttons {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+  
+  .mode-button {
+    width: 100%;
+    max-width: 250px;
+  }
 }

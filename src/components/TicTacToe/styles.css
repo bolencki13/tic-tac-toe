@@ -2,23 +2,32 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: var(--spacing-lg, 20px);
   font-family: sans-serif;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: var(--spacing-md, 1rem);
 }
 
 .status {
-  font-size: 1.5rem;
+  font-size: var(--font-size-xl, 1.5rem);
   font-weight: bold;
-  margin-bottom: 10px;
+  margin-bottom: var(--spacing-sm, 10px);
+  text-align: center;
 }
 
 .board-container {
   position: relative;
-  margin-bottom: 20px;
-  /* Ensure container fits the board exactly (3 squares of 80px + 2px border) */
+  margin-bottom: var(--spacing-lg, 20px);
+  /* Responsive sizing */
+  --square-size: min(80px, calc((100vw - 40px) / 3));
+  --board-size: calc(var(--square-size) * 3 + 4px);
+  
   padding: 0;
-  width: 244px; /* 3 * 80px + 4px border */
-  height: 244px; /* 3 * 80px + 4px border */
+  width: var(--board-size);
+  height: var(--board-size);
+  
   /* Center the board within the container */
   display: flex;
   justify-content: center;
@@ -42,10 +51,10 @@
 }
 
 .square {
-  width: 80px;
-  height: 80px;
+  width: var(--square-size);
+  height: var(--square-size);
   border: 1px solid #999;
-  font-size: 2rem;
+  font-size: calc(var(--square-size) * 0.5);
   font-weight: bold;
   display: flex;
   align-items: center;
@@ -55,6 +64,7 @@
   transition: background-color 0.2s;
   position: relative;
   overflow: hidden;
+  touch-action: manipulation; /* Prevents double-tap to zoom on mobile */
 }
 
 .square:hover {
@@ -89,8 +99,8 @@
 .winning-line {
   position: absolute;
   background-color: #4CAF50;
-  height: 6px;
-  border-radius: 3px;
+  height: min(6px, calc(var(--square-size) * 0.08));
+  border-radius: min(3px, calc(var(--square-size) * 0.04));
   z-index: 2;
   transform-origin: left center;
   box-shadow: 0 0 5px rgba(76, 175, 80, 0.7);
@@ -115,40 +125,40 @@
 /* Rows */
 .winning-line.row-1, .winning-line.row-2, .winning-line.row-3 {
   width: 0;
-  left: 10px;
+  left: calc(var(--square-size) * 0.125);
   animation-name: draw-line;
 }
 
 .winning-line.row-1 {
-  top: 40px; /* Middle of first row */
+  top: calc(var(--square-size) * 0.5); /* Middle of first row */
 }
 
 .winning-line.row-2 {
-  top: 120px; /* Middle of second row */
+  top: calc(var(--square-size) * 1.5); /* Middle of second row */
 }
 
 .winning-line.row-3 {
-  top: 200px; /* Middle of third row */
+  top: calc(var(--square-size) * 2.5); /* Middle of third row */
 }
 
 /* Columns */
 .winning-line.col-1, .winning-line.col-2, .winning-line.col-3 {
   height: 0;
-  width: 6px;
-  top: 10px;
+  width: min(6px, calc(var(--square-size) * 0.08));
+  top: calc(var(--square-size) * 0.125);
   animation-name: draw-line-vertical;
 }
 
 .winning-line.col-1 {
-  left: 40px; /* Middle of first column */
+  left: calc(var(--square-size) * 0.5); /* Middle of first column */
 }
 
 .winning-line.col-2 {
-  left: 120px; /* Middle of second column */
+  left: calc(var(--square-size) * 1.5); /* Middle of second column */
 }
 
 .winning-line.col-3 {
-  left: 200px; /* Middle of third column */
+  left: calc(var(--square-size) * 2.5); /* Middle of third column */
 }
 
 /* SVG Diagonals */
@@ -187,7 +197,7 @@
     background-position: 100% 50%;
   }
   100% {
-    width: calc(100% - 20px);
+    width: calc(100% - calc(var(--square-size) * 0.25));
     background-position: 0% 50%;
   }
 }
@@ -201,7 +211,7 @@
     background-position: 100% 50%;
   }
   100% {
-    height: calc(100% - 20px);
+    height: calc(100% - calc(var(--square-size) * 0.25));
     background-position: 0% 50%;
   }
 }
@@ -215,8 +225,8 @@
     background-position: 100% 50%;
   }
   100% {
-    /* Further reduced for precise fit */
-    width: 325px;
+    /* Responsive diagonal line */
+    width: calc(var(--square-size) * 3 * 1.41); /* approximately sqrt(2) * 3 squares */
     background-position: 0% 50%;
   }
 }
@@ -231,7 +241,7 @@
   }
   100% {
     /* Matching diagonal-1 for consistency */
-    width: 325px;
+    width: calc(var(--square-size) * 3 * 1.41); /* approximately sqrt(2) * 3 squares */
     background-position: 0% 50%;
   }
 }
@@ -246,12 +256,15 @@
 .symbol-svg {
   width: 70%;
   height: 70%;
+  max-width: 56px; /* 70% of the default 80px square */
+  max-height: 56px;
 }
 
 .symbol-path {
   stroke-dasharray: 200;
   stroke-dashoffset: 200;
   animation: draw-symbol 1s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+  /* Remove the dynamic stroke width to keep the stroke consistent across screens */
 }
 
 /* Specific settings for O to make the circle animation work correctly */
@@ -296,17 +309,34 @@
 }
 
 .reset-button {
-  margin-top: 15px;
-  padding: 10px 20px;
-  font-size: 1rem;
+  margin-top: var(--spacing-md, 15px);
+  padding: var(--spacing-sm, 10px) var(--spacing-lg, 20px);
+  font-size: var(--font-size-md, 1rem);
   background-color: #4CAF50;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s;
+  min-height: 44px; /* Minimum touch target size */
+  min-width: 120px; /* Ensure button is easy to tap */
+  user-select: none; /* Prevent text selection on touch */
+  -webkit-tap-highlight-color: transparent; /* Remove tap highlight on iOS */
 }
 
 .reset-button:hover {
   background-color: #45a049;
+}
+
+@media (hover: none) {
+  /* Touch device specific styles */
+  .reset-button {
+    padding: var(--spacing-md, 15px) var(--spacing-lg, 20px);
+  }
+  
+  /* Add active state for touch feedback */
+  .reset-button:active {
+    background-color: #388E3C;
+    transform: scale(0.98);
+  }
 }

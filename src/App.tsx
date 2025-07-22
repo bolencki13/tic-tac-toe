@@ -53,8 +53,8 @@ function GameApp() {
   };
   
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-4 gap-6">
-      <h1 className="text-3xl font-bold mb-4">Tic Tac Toe</h1>
+    <div className="flex min-h-screen flex-col items-center justify-center p-4 gap-6 max-w-[800px] mx-auto">
+      <h1 className="text-3xl font-bold mb-4 text-center">Tic Tac Toe</h1>
       
       <Suspense fallback={<div>Loading...</div>}>
         {!gameMode ? (
