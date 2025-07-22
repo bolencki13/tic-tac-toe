@@ -51,7 +51,6 @@ export function Confetti(props: Confetti.Props) {
         const size = sizeRoll < 0.7 ? sizes[0] : (sizeRoll < 0.95 ? sizes[1] : sizes[2]);
         
         // Random rotation
-        const rotation = Math.floor(Math.random() * 360);
         const rotateAmount = -180 + Math.random() * 360;
         
         // Random color from our expanded palette

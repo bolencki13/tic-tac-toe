@@ -1,24 +1,6 @@
-import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
-import { TicTacToe } from '../components/TicTacToe';
-
-interface GameContextType {
-  scores: {
-    player1: number;
-    player2: number;
-    ties: number;
-  };
-  gameMode: TicTacToe.GameMode | null;
-  gameStyle: TicTacToe.GameStyle | null;
-  difficulty: TicTacToe.Difficulty;
-  setGameMode: (mode: TicTacToe.GameMode | null) => void;
-  setGameStyle: (style: TicTacToe.GameStyle | null) => void;
-  setDifficulty: (difficulty: TicTacToe.Difficulty) => void;
-  handleGameEnd: (winner: string | null) => void;
-  resetScores: () => void;
-  resetGame: () => void;
-}
-
-const GameContext = createContext<GameContextType | undefined>(undefined);
+import { useState, type ReactNode, useCallback } from 'react';
+import type { TicTacToe } from '../components/TicTacToe/types';
+import { GameContext } from './GameContextType';
 
 export function GameProvider({ children }: { children: ReactNode }) {
   const [gameMode, setGameModeState] = useState<TicTacToe.GameMode | null>(null);
@@ -29,9 +11,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     player2: 0, // O player (AI in single mode)
     ties: 0
   });
-  const [previousMode, setPreviousMode] = useState<TicTacToe.GameMode | null>(null);
-  const [previousStyle, setPreviousStyle] = useState<TicTacToe.GameStyle | null>(null);
-  
+
   // Reset scores when game mode or style changes
   const setGameMode = useCallback((mode: TicTacToe.GameMode | null) => {
     if (mode !== gameMode) {
@@ -40,11 +20,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
         player2: 0,
         ties: 0
       });
-      setPreviousMode(mode);
     }
     setGameModeState(mode);
   }, [gameMode]);
-  
+
   const setGameStyle = useCallback((style: TicTacToe.GameStyle | null) => {
     if (style !== gameStyle) {
       setScores({
@@ -52,11 +31,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
         player2: 0,
         ties: 0
       });
-      setPreviousStyle(style);
     }
     setGameStyleState(style);
   }, [gameStyle]);
-  
+
   // Handle game end and update scores
   const handleGameEnd = useCallback((winner: string | null) => {
     if (winner === 'X') {
@@ -77,7 +55,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       }));
     }
   }, []);
-  
+
   // Reset scores
   const resetScores = useCallback(() => {
     setScores({
@@ -86,16 +64,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
       ties: 0
     });
   }, []);
-  
+
   // Reset game state
   const resetGame = useCallback(() => {
     setGameModeState(null);
     setGameStyleState(null);
     resetScores();
-    setPreviousMode(null);
-    setPreviousStyle(null);
   }, [resetScores]);
-  
+
   const value = {
     scores,
     gameMode,
@@ -108,7 +84,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     resetScores,
     resetGame
   };
-  
+
   return (
     <GameContext.Provider value={value}>
       {children}
@@ -116,10 +92,3 @@ export function GameProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useGame() {
-  const context = useContext(GameContext);
-  if (context === undefined) {
-    throw new Error('useGame must be used within a GameProvider');
-  }
-  return context;
-}

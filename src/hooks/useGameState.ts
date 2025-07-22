@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { findBestMove, findRandomMove } from '../utils/aiOpponent';
-import { TicTacToe } from '../components/TicTacToe';
+import type { TicTacToe } from '../components/TicTacToe/types';
 
 export function useGameState(props: {
   mode: TicTacToe.GameMode;
@@ -163,7 +163,7 @@ export function useGameState(props: {
       setIsXNext(true);
       setIsAIThinking(false);
     }, 500);
-  }, [board, isXNext, winner, style, difficulty, oMoves, calculateWinner, onGameEnd]);
+  }, [board, isXNext, winner, style, difficulty, oMoves, calculateWinner, onGameEnd, xMoves]);
 
   /**
    * Effect to trigger AI move when it's AI's turn in single player mode

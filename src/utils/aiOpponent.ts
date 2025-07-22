@@ -124,7 +124,6 @@ function minimax(
   humanPlayer: string,
   alpha: number = -Infinity,
   beta: number = Infinity,
-  maxDepth: number = 10 // Allow deeper search for harder difficulties
 ): number {
   // Create a cache key for this board state
   const cacheKey = getBoardHash(board, isMaximizing, depth);

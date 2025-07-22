@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
-import { GameProvider, useGame } from './contexts/GameContext';
+import { GameProvider } from './contexts/GameContext';
+import { useGame } from './hooks/useGame';
 
 // Lazy-loaded components
 const TicTacToe = lazy(() => import('./components/TicTacToe').then(module => ({ default: module.TicTacToe })));
